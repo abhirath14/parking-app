@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/abhirath14/parking-app/issues"
   },
-  "homepage": "https://github.com/abhirath14/parking-app#readme"
+  "homepage": "https://github.com/abhirath14/parking-app#readme",
+  "dependencies": {
+    "mysql2": "^2.2.5"
+  }
 }
