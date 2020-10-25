@@ -4,7 +4,7 @@ const User = require('../../models/user.js');
 const UserSlot = require('../../models/user_slot.js');
 
 exports.unParkVehicleForUserId = (req, res, next) => {
-  var userId = req.body.userId;
+  var userId = req.body.user_id;
   var slotNo = req.body.slot_no;
   ParkingSlot.update(
     {status: 'VACANT'},
@@ -19,7 +19,7 @@ exports.unParkVehicleForUserId = (req, res, next) => {
         }
       }
     ).then(output => {
-      var hours = parseFloat(new Date(output.end_time) - new Date(output.start_time)) / 3600000;
+      var hours = 10*Math.ceil(parseFloat(new Date(output.end_time) - new Date(output.start_time)) / 3600000);
       res.json({message: "success", fee: hours*10});
       res.status(200);
     }).catch(err => {
@@ -31,7 +31,6 @@ exports.unParkVehicleForUserId = (req, res, next) => {
     res.json({message: err});
   });
 }
-
 async function nextVacantSlot() {
   var slot;
   try {
@@ -52,6 +51,8 @@ async function nextVacantSlot() {
 exports.bookNextParkingSlots = async (req, res, next) => {
 
   var slot = await nextVacantSlot();
+  var userId = req.body.user_id;
+
   if (!slot) {
     res.status(200);
     return res.json({message: "No slot found"});
@@ -83,8 +84,24 @@ exports.bookNextParkingSlots = async (req, res, next) => {
   ).then(
     result => {
       if (result) {
-        res.json({message: `Slot number ${slot.slot_no} booked for parking`});
-        res.status(200);
+
+        const userSlot = {
+          user_id: userId,
+          slot_no: slot.slot_no,
+          start_time: Date.now(),
+          end_time: null
+        };
+
+        UserSlot.create(userSlot).then(
+          result => {
+            res.json({message: `Slot number ${slot.slot_no} booked for parking`});
+            res.status(200);
+          }
+        ).catch(err => {
+          res.json({message: err});
+          res.status(200);
+        });
+
       }
     }
   ).catch(
